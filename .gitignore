@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+
+.pio/
+.vscode/
+build/
+*.o
+*.a
+*.so
+*.elf
+*.bin
+*.hex
+
+*.user
+*.user.*
