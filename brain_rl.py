@@ -31,6 +31,8 @@ Q = np.zeros((n_states, n_actions))
 last_state = None
 last_action = None
 passage_time = 0
+modo_lluvia = False # por defecto, no está lloviendo
+ws_actor = None # Guardaremos una referencia al websocket del actor
 
 nombres_estados_mef = {0:"S1 Verde", 1:"S1 Amarillo", 2:"S2 Verde", 3:"S2 Amarillo", 4:"Peatones S1", 5:"Peatones S2"}
 nombres_acciones = {0:"SEGUIR_CICLO", 1:"ATENDER_PEATON", 2:"FORZAR_CAMBIO"}
@@ -89,7 +91,15 @@ def calcular_recompensa(estado_ant, accion_idx):
         if accion_idx == 2: # FORZAR_CAMBIO
             return -5.0  # Castigo por una acción innecesaria (no había tráfico).
 
-    # >> PRIORIDAD 3: Si no hay nadie esperando, el ciclo normal es lo correcto.
+    # >> PRIORIDAD 3:
+    # Si está lloviendo, penalizamos las acciones que cambian el flujo
+    # para promover un comportamiento más estable y seguro.
+    elif modo_lluvia:
+        if accion_idx == 2: # FORZAR_CAMBIO
+            print("[ESTRATEGIA] Penalizando FORZAR_CAMBIO por lluvia.")
+            return - 15.0 # Castigo extra
+
+    # >> PRIORIDAD 4: Si no hay nadie esperando, el ciclo normal es lo correcto.
     else: # No hay ni tráfico ni peatones
         if accion_idx == 0: # SEGUIR_CICLO
             return 5.0   # Recompensa por mantener el ciclo eficientemente.
@@ -126,11 +136,29 @@ def write_report(paso, estado_ant, accion_idx, recompensa):
         ])
 
 def on_message(ws, message):
-    global last_state, last_action, Q, epsilon, passage_time
+    global last_state, last_action, Q, epsilon, passage_time, modo_lluvia
+    ws_actor = ws # Guardamos la conexión para poder enviar comandos estratégicos
 
     try:
         datos_recibidos = json.loads(message)
         
+        # ESCUCHAR AL SUPERVISOR
+        if datos_recibidos.get("type") == "STRATEGIC_COMMAND":
+            comando = datos_recibidos.get("comando")
+            print(f"\n[!!!] COMANDO ESTRATÉGICO RECIBIDO: {comando} [!!!]\n")
+            
+            nuevo_modo_lluvia = (comando == "MODO_LLUVIA_ON")
+            
+            # Si el modo cambió, se lo informamos al actor
+            if nuevo_modo_lluvia != modo_lluvia:
+                modo_lluvia = nuevo_modo_lluvia
+                # Reenviamos el comando estratégico al actor físico
+                if ws_actor and ws_actor.sock and ws_actor.sock.connected:
+                    ws_actor.send(json.dumps(datos_recibidos))
+                    print(f"--> Cerebro Táctico reenviando comando '{comando}' al actor.")
+            return
+        
+        # ESTADOS DEL ACTOR
         if datos_recibidos.get("type") == "ACTOR_STATE":
             
             # 1. OBSERVAR
