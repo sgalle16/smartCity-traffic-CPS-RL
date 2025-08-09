@@ -14,7 +14,7 @@ CANAL_WEBSOCKET = "city_2"
 # --- Parámetros de Q-learning ---
 alpha = 0.1      # tasa de aprendizaje
 gamma = 0.9      # factor de descuento
-epsilon = 0.1    # política ε-greedy exploración
+epsilon = 0.4    # política ε-greedy exploración
 epsilon_min = 0.01
 epsilon_decay = 0.995 # Multiplicamos en cada iteración
 Q_TABLE_FILE = "q_table.json"
