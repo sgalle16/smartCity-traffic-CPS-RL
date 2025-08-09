@@ -567,7 +567,7 @@ void displayInfo() {
     lcd.setCursor(0, 0);
     lcd.print("Modo:");
     lcd.print((modoOperacion == MODO_DIA) ? "DIA  " : "NOCHE");
-    if(modoLluvia) { lcd.print("L"); } // R rain de Lluvia
+    if(modoLluvia) { lcd.print("R"); } // R rain de Lluvia
     if(peticionPeatonS1) { lcd.setCursor(12,0); lcd.print("P1*"); }
     if(peticionPeatonS2) { lcd.setCursor(16,0); lcd.print("P2*"); }
 

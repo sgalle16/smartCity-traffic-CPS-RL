@@ -8,7 +8,7 @@ import sys
 # --- CONFIGURACIÓN ---
 API_KEY = "889b43e71ff5b89453df286bd00e2a7d"  # API KEY OPENWEATHERMAP
 # Medellin,CO, Cairo,EG, London,UK, Moscow,RU, Cherrapunji,IN . . .
-CIUDAD = "Medellin,CO"
+CIUDAD = "London,UK"
 URL_API = f"http://api.openweathermap.org/data/2.5/weather?q={CIUDAD}&APPID={API_KEY}&units=metric"
 
 # Usamos el MISMO servidor WebSocket, pero un CANAL DIFERENTE para la comunicación estratégica
@@ -37,6 +37,7 @@ def enviar_comando_estrategico(ws, comando, clima_actual):
     mensaje = {
         "from": SUPERVISOR_ID,
         "to": "city_2",  # Envía a todos en el canal
+        "msg": comando,
         "type": "STRATEGIC_COMMAND",
         "comando": comando,
         "clima_info": clima_actual  # Añadimos info extra para logs

@@ -91,13 +91,13 @@ def calcular_recompensa(estado_ant, accion_idx):
         if accion_idx == 2: # FORZAR_CAMBIO
             return -5.0  # Castigo por una acción innecesaria (no había tráfico).
 
-    # >> PRIORIDAD 3:
-    # Si está lloviendo, penalizamos las acciones que cambian el flujo
-    # para promover un comportamiento más estable y seguro.
+    # >> PRIORIDAD 3: Estrategia especial para el MODO LLUVIA (si no hay emergencias)
     elif modo_lluvia:
-        if accion_idx == 2: # FORZAR_CAMBIO
-            print("[ESTRATEGIA] Penalizando FORZAR_CAMBIO por lluvia.")
-            return - 15.0 # Castigo extra
+        print("[ESTRATEGIA] Aplicando recompensas de MODO LLUVIA.")
+        if accion_idx == 0: # SEGUIR_CICLO
+            return 10.0 # En lluvia, se premia mantener un ciclo estable y predecible.
+        else: # ATENDER_PEATON o FORZAR_CAMBIO
+            return -15.0 # En lluvia, se castigan las interrupciones bruscas.
 
     # >> PRIORIDAD 4: Si no hay nadie esperando, el ciclo normal es lo correcto.
     else: # No hay ni tráfico ni peatones
@@ -153,9 +153,9 @@ def on_message(ws, message):
             if nuevo_modo_lluvia != modo_lluvia:
                 modo_lluvia = nuevo_modo_lluvia
                 # Reenviamos el comando estratégico al actor físico
-                if ws_actor and ws_actor.sock and ws_actor.sock.connected:
-                    ws_actor.send(json.dumps(datos_recibidos))
-                    print(f"--> Cerebro Táctico reenviando comando '{comando}' al actor.")
+                # if ws_actor and ws_actor.sock and ws_actor.sock.connected:
+                #     ws_actor.send(json.dumps(datos_recibidos))
+                #     print(f"--> Cerebro Táctico reenviando comando '{comando}' al actor.")
             return
         
         # ESTADOS DEL ACTOR
